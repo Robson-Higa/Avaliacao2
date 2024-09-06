@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { Autor } from "./entity/Autor";
@@ -13,9 +12,3 @@ export const AppDataSource = new DataSource({
   migrations: [],
   subscribers: [],
 });
-
-AppDataSource.initialize()
-  .then(() => console.log("Data source inicializado"))
-  .catch((erro) =>
-    console.error("Erro ao tentar inicializar o data source", erro),
-  );

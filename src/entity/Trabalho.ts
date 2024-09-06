@@ -6,14 +6,10 @@ import {
   ManyToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import Area from "./Area";
 import { Autor } from "./Autor";
 
 @Entity()
 export class Trabalho {
-  static create(trabalho: Trabalho) {
-    throw new Error("Method not implemented.");
-  }
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -24,7 +20,7 @@ export class Trabalho {
   codigo: string;
 
   @Column()
-  area: Area;
+  area: string;
 
   @ManyToMany(() => Autor)
   @JoinTable()

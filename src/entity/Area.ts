@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 enum Area {
   CET = "CET",
   CAE = "CAE",

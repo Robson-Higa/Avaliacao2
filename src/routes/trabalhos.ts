@@ -1,13 +1,13 @@
+/* eslint-disable prettier/prettier */
+/* eslint-disable import/no-named-as-default */
 import { Router } from "express";
+// eslint-disable-next-line import/no-named-as-default-member
+import TrabalhoController from "../controllers/TrabalhoController";
 
 const trabalhosRouter = Router();
 
-trabalhosRouter.post("/", (req, res) => contactCtrl.save(req, res));
-contactsRouter.get("/name/:name", (req, res) =>
-  contactCtrl.findByName(req, res),
-);
-contactsRouter.get("/birthday/:start/:end", (req, res) =>
-  contactCtrl.findByBirthdayPeriod(req, res),
-);
+const trabalhoCtrl = new TrabalhoController();
 
-export default contactsRouter;
+trabalhosRouter.post("/", (req, res) => trabalhoCtrl.salvar(req, res));
+
+export default trabalhosRouter;

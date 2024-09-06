@@ -1,6 +1,5 @@
 /* eslint-disable import/prefer-default-export */
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
-import Genero from "./Genero";
 
 @Entity()
 export class Autor {
@@ -11,7 +10,7 @@ export class Autor {
   nome: string;
 
   @Column()
-  genero: Genero;
+  genero: string;
 
   @Column({ length: 11 })
   cpf: string;

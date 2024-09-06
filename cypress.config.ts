@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable no-plusplus */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable import/no-extraneous-dependencies */
@@ -12,20 +13,16 @@ import { Trabalho } from "./src/entity/Trabalho";
 import Genero from "./src/entity/Genero";
 import Area from "./src/entity/Area";
 
-(async () => {
-  await AppDataSource.initialize();
-})();
-
-const autorRepo = AppDataSource.getRepository(Autor);
-const trabalhoRepo = AppDataSource.getRepository(Trabalho);
-
 export default defineConfig({
   e2e: {
-    baseUrl: "http://localhost:3000",
+    baseUrl: "http://localhost:3001",
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setupNodeEvents(on, config) {
       on("task", {
         async limparBancoDeDados() {
+          await AppDataSource.initialize();
+          const autorRepo = AppDataSource.getRepository(Autor);
+          const trabalhoRepo = AppDataSource.getRepository(Trabalho);
           let trabalhos = await trabalhoRepo.find();
           await trabalhoRepo.remove(trabalhos);
           trabalhos = await trabalhoRepo.find();
@@ -40,6 +37,9 @@ export default defineConfig({
         },
 
         async popularBancoDeDados() {
+          await AppDataSource.initialize();
+          const autorRepo = AppDataSource.getRepository(Autor);
+          const trabalhoRepo = AppDataSource.getRepository(Trabalho);
           const QTDE_AUTORES = 10;
           const QTDE_TRABALHOS = 100;
 
@@ -76,6 +76,9 @@ export default defineConfig({
               trabalho.area = Area.MDIS;
               trabalho.autores = autores.slice(8);
             }
+
+            const numero = i + 1;
+            trabalho.codigo = `${trabalho.area}${numero < 10 ? `0${numero}` : numero}`;
 
             await trabalhoRepo.save(trabalho);
           }
