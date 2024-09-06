@@ -31,7 +31,7 @@ describe("Testes sobre o endpoint POST /trabalhos", () => {
     cy.fixture("trabalho_sem_titulo").as("trabalhoSemTitulo");
   });
 
-  it.only("deve salvar um trabalho com dados válidos", function () {
+  it("deve salvar um trabalho com dados válidos", function () {
     requestOptionsPOST.body = this.trabalho;
 
     cy.request(requestOptionsPOST).then((res) => {
@@ -48,9 +48,7 @@ describe("Testes sobre o endpoint POST /trabalhos", () => {
     cy.request(requestOptionsPOST).then((res) => {
       expect(res.status).to.equal(400);
       const { mensagensDeErro } = res.body;
-      expect(mensagensDeErro[0]).to.equal(
-        "O título do trabalho não pode ser vazio",
-      );
+      expect(mensagensDeErro[0]).to.equal("O título do trabalho não pode ser vazio",);
     });
   });
 
