@@ -1,73 +1,72 @@
+/* eslint-disable no-plusplus */
+/* eslint-disable guard-for-in */
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable prefer-arrow-callback */
 import { Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { Autor } from "../entity/Autor";
 import { Trabalho } from "../entity/Trabalho";
-import Area  from "../entity/Area"; 
 
 export default class TrabalhoController {
-  async salvar(req: Request, res: Response) {
-    const {id, titulo, area, codigo, autores } = req.body;
+  private validateInputs(
+    titulo: string,
+    area: string,
+    codigo: string,
+    autores: any[]
+  ): string[] {
+    const mensagensDeErro: string[] = [];
 
-
-    if (id && titulo && area && codigo && autores && autores.length !== 0) {
-      return res.status(201).json();
-    }
-
-     const mensagensDeErro: string[] = [];
-
-    if (!titulo || titulo.trim() === 0) {
+    if (!titulo || titulo.trim().length === 0) {
       mensagensDeErro.push("O título do trabalho não pode ser vazio");
-       return res.status(400).json({ mensagensDeErro });
     }
 
-    if (autores.length > 7) {
-      mensagensDeErro.push("O trabalho deve conter entre 2 e 7 autores",);
-      return res.status(400).json({ mensagensDeErro });  
+    const areasValidas = ["CAE", "CET", "CBS", "CHCSA", "MDIS"];
+    if (!area || !areasValidas.includes(area)) {
+      mensagensDeErro.push("A área do trabalho deve ser uma dentre as opções: CAE, CET, CBS, CHCSA e MDIS.");
     }
 
-    if (autores.length < 2) {
-       mensagensDeErro.push("O trabalho deve conter entre 2 e 7 autores",);
-      return res.status(400).json({ mensagensDeErro }); 
+    if (!codigo || !/^[A-Z]{3}\d{2}$/.test(codigo)) {
+      mensagensDeErro.push("O código do trabalho deve ser composto pelo código da área seguido por 2 dígitos.");
     }
 
-    for (const autor of autores) {
-      
-
-      const autorNome = autor.nome.trim().split(/\s+/);
-      if (autorNome.length < 2) {
-        mensagensDeErro.push("Os nomes dos autores devem conter nome e sobrenome.",);
-        return res.status(400).json({ mensagensDeErro });
-      }
-
-      if (!autor.cpf || autor.cpf.length !== 11 ) {
-        mensagensDeErro.push("O CPF de cada autor deve conter 11 dígitos e não possuir máscara.",);
-        return res.status(400).json({ mensagensDeErro });
-      }
-
-      if (!autor.genero || autor.genero !== 'M' && autor.genero !== 'F') {
-         mensagensDeErro.push("O gênero de cada autor deve ser uma dentre as opções M ou F.",);
-        return res.status(400).json({ mensagensDeErro });
-      }
-    }
-
-    if (!area || !Object.values(Area).includes(area)) {
-       mensagensDeErro.push( "A área do trabalho deve ser uma dentre as opções: CAE, CET, CBS, CHCSA e MDIS.",);
-      return res.status(400).json({ mensagensDeErro });
-    }
-
-    const codRegex = new RegExp(`^${area}\\d{2}$`)
-    if (!codigo.startsWith(area) || !codRegex.test(codigo)) {
-       mensagensDeErro.push("O código do trabalho deve ser composto pelo código da área seguido por 2 dígitos.",
-);
-      return res.status(400).json({ mensagensDeErro });
-    }
-      await AppDataSource.transaction(async (transactionalEntityManager) => {
+    if (!autores || !Array.isArray(autores) || autores.length < 2 || autores.length > 7) {
+      mensagensDeErro.push("O trabalho deve conter entre 2 e 7 autores");
+    } else {
+      for (let i = 0; i < autores.length; i++) {
+        const autor = autores[i];
         
+        if (!autor.nome || autor.nome.trim().split(" ").length < 2) {
+          mensagensDeErro.push("Os nomes dos autores devem conter nome e sobrenome.");
+        }
+        
+        if (!autor.genero || !['M', 'F'].includes(autor.genero)) {
+          mensagensDeErro.push("O gênero de cada autor deve ser uma dentre as opções M ou F.");
+        }
+        
+        if (!autor.cpf || !/^\d{11}$/.test(autor.cpf)) {
+          mensagensDeErro.push("O CPF de cada autor deve conter 11 dígitos e não possuir máscara.");
+        }
+      }
+    }
+
+    return mensagensDeErro;
+  }
+
+  async salvar(req: Request, res: Response) {
+    const { titulo, area, codigo, autores } = req.body;
+
+    const mensagensDeErro = this.validateInputs(titulo, area, codigo, autores);
+
+    if (mensagensDeErro.length > 0) {
+      return res.status(400).json({ mensagensDeErro });
+    }
+
+      await AppDataSource.transaction(async (transactionalEntityManager) => {
         const autoresSalvos: Autor[] = [];
 
-        for (const autorData of autores) {
+        for (let i = 0; i < autores.length; i++) {
           const autor = new Autor();
-          Object.assign(autor, autorData);
+          Object.assign(autor, autores[i]);
           const autorSalvo = await transactionalEntityManager.save(autor);
           autoresSalvos.push(autorSalvo);
         }
@@ -81,9 +80,26 @@ export default class TrabalhoController {
         const trabalhoSalvo = await transactionalEntityManager.save(trabalho);
         return res.status(201).json({ trabalho: trabalhoSalvo });
       });
-   }
-  
-  
+    
+  }
+  async buscarPorArea(req: Request, res: Response) {
+    const { codArea } = req.params;
+
+    try {
+      const areasValidas = ["CAE", "CET", "CBS", "CHCSA", "MDIS"];
+      if (!areasValidas.includes(codArea)) {
+        return res.status(200).json({ trabalhos: [] });
+      }
+
+      const trabalhos = await AppDataSource.getRepository(Trabalho).find({
+        where: { area: codArea },
+      });
+
+      return res.status(200).json({ trabalhos });
+    } catch (error) {
+      console.error("Erro ao buscar trabalhos:", error);
+      return res.status(500).json({ erro: "Erro interno do servidor" });
+    }
+  }
+
 }
-
-
