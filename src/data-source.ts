@@ -7,7 +7,7 @@ export const AppDataSource = new DataSource({
   type: "sqlite",
   database: "feciaqteste.db",
   synchronize: true,
-  logging: true,
+  logging: false,
   entities: [Autor, Trabalho],
   migrations: [],
   subscribers: [],

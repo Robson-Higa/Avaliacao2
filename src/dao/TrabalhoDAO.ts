@@ -14,4 +14,14 @@ export default class TrabalhoDAO {
     const trabalhoSalvo = await this.trabalhoRepo.save(trabalho);
     return trabalhoSalvo;
   }
+
+  async buscarPorArea(area: string) {
+    const trabalhos = await this.trabalhoRepo.find({
+      where: {
+        area,
+      },
+    });
+
+    return trabalhos;
+  }
 }

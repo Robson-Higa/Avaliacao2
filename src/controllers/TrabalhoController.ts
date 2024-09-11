@@ -6,13 +6,20 @@ import { Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { Autor } from "../entity/Autor";
 import { Trabalho } from "../entity/Trabalho";
+import TrabalhoDAO from "../dao/TrabalhoDAO";
+import Area from "../entity/Area";
 
 export default class TrabalhoController {
+  private trabalhoDAO: TrabalhoDAO;
+
+  constructor() {
+    this.trabalhoDAO = new TrabalhoDAO();
+  }
   private validateInputs(
     titulo: string,
     area: string,
     codigo: string,
-    autores: any[]
+    autores: any[],
   ): string[] {
     const mensagensDeErro: string[] = [];
 
@@ -22,29 +29,44 @@ export default class TrabalhoController {
 
     const areasValidas = ["CAE", "CET", "CBS", "CHCSA", "MDIS"];
     if (!area || !areasValidas.includes(area)) {
-      mensagensDeErro.push("A área do trabalho deve ser uma dentre as opções: CAE, CET, CBS, CHCSA e MDIS.");
+      mensagensDeErro.push(
+        "A área do trabalho deve ser uma dentre as opções: CAE, CET, CBS, CHCSA e MDIS.",
+      );
     }
 
     if (!codigo || !/^[A-Z]{3}\d{2}$/.test(codigo)) {
-      mensagensDeErro.push("O código do trabalho deve ser composto pelo código da área seguido por 2 dígitos.");
+      mensagensDeErro.push(
+        "O código do trabalho deve ser composto pelo código da área seguido por 2 dígitos.",
+      );
     }
 
-    if (!autores || !Array.isArray(autores) || autores.length < 2 || autores.length > 7) {
+    if (
+      !autores ||
+      !Array.isArray(autores) ||
+      autores.length < 2 ||
+      autores.length > 7
+    ) {
       mensagensDeErro.push("O trabalho deve conter entre 2 e 7 autores");
     } else {
       for (let i = 0; i < autores.length; i++) {
         const autor = autores[i];
-        
+
         if (!autor.nome || autor.nome.trim().split(" ").length < 2) {
-          mensagensDeErro.push("Os nomes dos autores devem conter nome e sobrenome.");
+          mensagensDeErro.push(
+            "Os nomes dos autores devem conter nome e sobrenome.",
+          );
         }
-        
-        if (!autor.genero || !['M', 'F'].includes(autor.genero)) {
-          mensagensDeErro.push("O gênero de cada autor deve ser uma dentre as opções M ou F.");
+
+        if (!autor.genero || !["M", "F"].includes(autor.genero)) {
+          mensagensDeErro.push(
+            "O gênero de cada autor deve ser uma dentre as opções M ou F.",
+          );
         }
-        
+
         if (!autor.cpf || !/^\d{11}$/.test(autor.cpf)) {
-          mensagensDeErro.push("O CPF de cada autor deve conter 11 dígitos e não possuir máscara.");
+          mensagensDeErro.push(
+            "O CPF de cada autor deve conter 11 dígitos e não possuir máscara.",
+          );
         }
       }
     }
@@ -55,12 +77,12 @@ export default class TrabalhoController {
   async salvar(req: Request, res: Response) {
     const { titulo, area, codigo, autores } = req.body;
 
+    console.log(titulo, area, codigo, autores);
+
     const mensagensDeErro = this.validateInputs(titulo, area, codigo, autores);
 
-    if (mensagensDeErro.length > 0) {
-      return res.status(400).json({ mensagensDeErro });
-    }
-
+    if (mensagensDeErro.length === 0) {
+      let trabalho = new Trabalho();
       await AppDataSource.transaction(async (transactionalEntityManager) => {
         const autoresSalvos: Autor[] = [];
 
@@ -71,35 +93,28 @@ export default class TrabalhoController {
           autoresSalvos.push(autorSalvo);
         }
 
-        const trabalho = new Trabalho();
+        //const trabalho = new Trabalho();
         trabalho.area = area;
         trabalho.codigo = codigo;
         trabalho.titulo = titulo;
         trabalho.autores = autoresSalvos;
 
         const trabalhoSalvo = await transactionalEntityManager.save(trabalho);
-        return res.status(201).json({ trabalho: trabalhoSalvo });
+        trabalho = trabalhoSalvo;
       });
-    
+
+      return res.status(201).json({ trabalho });
+    }
+    return res.status(400).json({ mensagensDeErro });
   }
+
   async buscarPorArea(req: Request, res: Response) {
     const { codArea } = req.params;
 
-    try {
-      const areasValidas = ["CAE", "CET", "CBS", "CHCSA", "MDIS"];
-      if (!areasValidas.includes(codArea)) {
-        return res.status(200).json({ trabalhos: [] });
-      }
+    const trabalhos = await this.trabalhoDAO.buscarPorArea(codArea);
 
-      const trabalhos = await AppDataSource.getRepository(Trabalho).find({
-        where: { area: codArea },
-      });
+    console.log(trabalhos);
 
-      return res.status(200).json({ trabalhos });
-    } catch (error) {
-      console.error("Erro ao buscar trabalhos:", error);
-      return res.status(500).json({ erro: "Erro interno do servidor" });
-    }
+    return res.status(200).json({ trabalhos });
   }
-
 }

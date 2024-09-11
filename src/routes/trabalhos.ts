@@ -9,5 +9,8 @@ const trabalhosRouter = Router();
 const trabalhoCtrl = new TrabalhoController();
 
 trabalhosRouter.post("/", (req, res) => trabalhoCtrl.salvar(req, res));
+trabalhosRouter.get("/area/:codArea", (req, res) =>
+  trabalhoCtrl.buscarPorArea(req, res),
+);
 
 export default trabalhosRouter;
