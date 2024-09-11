@@ -24,4 +24,15 @@ export default class TrabalhoDAO {
 
     return trabalhos;
   }
+
+   async areaInvalida (area: string) {
+    const trabalhos = await this.trabalhoRepo.find({
+      where: {
+        area,
+      },
+    });
+
+    return trabalhos;
+  }
+
 }

@@ -8,6 +8,7 @@ import { Autor } from "../entity/Autor";
 import { Trabalho } from "../entity/Trabalho";
 import TrabalhoDAO from "../dao/TrabalhoDAO";
 import Area from "../entity/Area";
+import { tr } from "@faker-js/faker";
 
 export default class TrabalhoController {
   private trabalhoDAO: TrabalhoDAO;
@@ -33,8 +34,10 @@ export default class TrabalhoController {
         "A área do trabalho deve ser uma dentre as opções: CAE, CET, CBS, CHCSA e MDIS.",
       );
     }
-
-    if (!codigo || !/^[A-Z]{3}\d{2}$/.test(codigo)) {
+      const padraoCodigo = `^(${areasValidas.join('|')})\\d{2}$`;
+      const regex = new RegExp(padraoCodigo);
+      
+    if (!codigo || !regex.test(codigo)) {
       mensagensDeErro.push(
         "O código do trabalho deve ser composto pelo código da área seguido por 2 dígitos.",
       );
@@ -93,7 +96,6 @@ export default class TrabalhoController {
           autoresSalvos.push(autorSalvo);
         }
 
-        //const trabalho = new Trabalho();
         trabalho.area = area;
         trabalho.codigo = codigo;
         trabalho.titulo = titulo;
@@ -117,4 +119,22 @@ export default class TrabalhoController {
 
     return res.status(200).json({ trabalhos });
   }
+
+  async areaInvalida(req: Request, res: Response) {
+
+    const { codArea } = req.params;
+    console.log(codArea);
+
+    const trabalhos = await this.trabalhoDAO.areaInvalida(codArea);
+
+    const areasValidas = ["CAE", "CET", "CBS", "CHCSA", "MDIS"];
+
+    if (!areasValidas.includes(codArea)) {
+      return res.status(400).json({
+      mensagem: 'Área inválida. Por favor, forneça uma área válida.',
+      trabalhos: [] // Array vazio, pois não há trabalhos para áreas inválidas
+    });
+    }  
+    return res.status(201).json({ trabalhos });      
+  }  
 }
