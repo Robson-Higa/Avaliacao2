@@ -113,12 +113,16 @@ export default class TrabalhoController {
     const { codArea } = req.params;
 
     const areasValidas = ["CAE", "CET", "CBS", "CHCSA", "MDIS"];
-
-    const trabalhos = await this.trabalhoDAO.buscarPorArea(codArea);
+    const errorMessages: string[] = []
+    // console.log(trabalhos)
 
     if (areasValidas.includes(codArea)) {
+    const trabalhos = await this.trabalhoDAO.buscarPorArea(codArea);
+
       return res.status(200).json({ trabalhos }); 
     }
-    return res.status(200).json({ trabalhos });
+    errorMessages.push('Área inválida!')
+    return res.status(200).json({ errorMessages });
   }
+  
  }
