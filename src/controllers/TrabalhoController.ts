@@ -7,8 +7,7 @@ import { AppDataSource } from "../data-source";
 import { Autor } from "../entity/Autor";
 import { Trabalho } from "../entity/Trabalho";
 import TrabalhoDAO from "../dao/TrabalhoDAO";
-import Area from "../entity/Area";
-import { tr } from "@faker-js/faker";
+import { Console } from "console";
 
 export default class TrabalhoController {
   private trabalhoDAO: TrabalhoDAO;
@@ -113,28 +112,13 @@ export default class TrabalhoController {
   async buscarPorArea(req: Request, res: Response) {
     const { codArea } = req.params;
 
-    const trabalhos = await this.trabalhoDAO.buscarPorArea(codArea);
-
-    console.log(trabalhos);
-
-    return res.status(200).json({ trabalhos });
-  }
-
-  async areaInvalida(req: Request, res: Response) {
-
-    const { codArea } = req.params;
-    console.log(codArea);
-
-    const trabalhos = await this.trabalhoDAO.areaInvalida(codArea);
-
     const areasValidas = ["CAE", "CET", "CBS", "CHCSA", "MDIS"];
 
-    if (!areasValidas.includes(codArea)) {
-      return res.status(400).json({
-      mensagem: 'Área inválida. Por favor, forneça uma área válida.',
-      trabalhos: [] // Array vazio, pois não há trabalhos para áreas inválidas
-    });
-    }  
-    return res.status(201).json({ trabalhos });      
-  }  
-}
+    const trabalhos = await this.trabalhoDAO.buscarPorArea(codArea);
+
+    if (areasValidas.includes(codArea)) {
+      return res.status(200).json({ trabalhos }); 
+    }
+    return res.status(200).json({ trabalhos });
+  }
+ }
