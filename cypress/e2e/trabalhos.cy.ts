@@ -153,16 +153,20 @@ describe("Testes sobre o endpoint POST /trabalhos", () => {
 });
 
 /* eslint-disable prefer-arrow-callback */
-const requestOptionsGET: Partial<Cypress.RequestOptions> = {
-  method: "GET",
-  url: "/trabalhos/area/:codArea",
-  failOnStatusCode: false,
-};
+let requestOptionsGET: Partial<Cypress.RequestOptions> = {};
 
 describe("Testes sobre o endpoint GET /trabalhos/area/:codArea", () => {
   before(() => {
     cy.task("limparBancoDeDados");
     cy.task("popularBancoDeDados");
+  });
+
+  beforeEach(() => {
+    requestOptionsGET = {
+      method: "GET",
+      url: "/trabalhos/area/:codArea",
+      failOnStatusCode: false,
+    };
   });
 
   it("deve recuperar todos os trabalhos de uma determinada área válida", () => {

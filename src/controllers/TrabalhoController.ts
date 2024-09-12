@@ -33,9 +33,9 @@ export default class TrabalhoController {
         "A área do trabalho deve ser uma dentre as opções: CAE, CET, CBS, CHCSA e MDIS.",
       );
     }
-      const padraoCodigo = `^(${areasValidas.join('|')})\\d{2}$`;
-      const regex = new RegExp(padraoCodigo);
-      
+    const padraoCodigo = `^(${areasValidas.join("|")})\\d{2}$`;
+    const regex = new RegExp(padraoCodigo);
+
     if (!codigo || !regex.test(codigo)) {
       mensagensDeErro.push(
         "O código do trabalho deve ser composto pelo código da área seguido por 2 dígitos.",
@@ -111,18 +111,8 @@ export default class TrabalhoController {
 
   async buscarPorArea(req: Request, res: Response) {
     const { codArea } = req.params;
-
-    const areasValidas = ["CAE", "CET", "CBS", "CHCSA", "MDIS"];
-    const errorMessages: string[] = []
     // console.log(trabalhos)
-
-    if (areasValidas.includes(codArea)) {
     const trabalhos = await this.trabalhoDAO.buscarPorArea(codArea);
-
-      return res.status(200).json({ trabalhos }); 
-    }
-    errorMessages.push('Área inválida!')
-    return res.status(200).json({ errorMessages });
+    return res.status(200).json({ trabalhos });
   }
-  
- }
+}
