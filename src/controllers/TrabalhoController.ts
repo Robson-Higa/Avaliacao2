@@ -7,7 +7,6 @@ import { AppDataSource } from "../data-source";
 import { Autor } from "../entity/Autor";
 import { Trabalho } from "../entity/Trabalho";
 import TrabalhoDAO from "../dao/TrabalhoDAO";
-import { Console } from "console";
 
 export default class TrabalhoController {
   private trabalhoDAO: TrabalhoDAO;
